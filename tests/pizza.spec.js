@@ -222,17 +222,27 @@ test('Login As Admin and Create Franchise for Franchisee and Close Franchise for
 
 test('register and see dinerDashboard and logout', async ({ page }) => {
 await page.goto('http://localhost:5173/');
+
 await page.getByRole('link', { name: 'Register' }).click();
 await page.getByRole('textbox', { name: 'Full name' }).click();
-await page.getByRole('textbox', { name: 'Full name' }).fill('newuser');
+await page.getByRole('textbox', { name: 'Full name' }).fill('newUser');
 await page.getByRole('textbox', { name: 'Email address' }).click();
-await page.getByRole('textbox', { name: 'Email address' }).fill('nu@jwt.com');
+await page.getByRole('textbox', { name: 'Email address' }).fill('new@jwt.com');
 await page.getByRole('textbox', { name: 'Password' }).click();
 await page.getByRole('textbox', { name: 'Password' }).fill('newuser');
 await expect(page.getByText('Welcome to the party')).toBeVisible();
+await expect(page.getByRole('link', { name: 'register', exact: true })).toBeVisible();
 await page.getByRole('button', { name: 'Register' }).click();
 await page.getByRole('link', { name: 'n', exact: true }).click();
 await expect(page.getByText('Your pizza kitchen')).toBeVisible();
+await expect(page.getByRole('link', { name: 'diner-dashboard' })).toBeVisible();
+await expect(page.getByText('How have you lived this long')).toBeVisible();
+await page.getByRole('link', { name: 'Buy one' }).click();
+await expect(page.getByText('Awesome is a click away')).toBeVisible();
+await expect(page.getByRole('link', { name: 'Logout' })).toBeVisible();
 await page.getByRole('link', { name: 'Logout' }).click();
+await expect(page.getByText('The web\'s best pizza', { exact: true })).toBeVisible();
+await expect(page.getByRole('link', { name: 'Login' })).toBeVisible();
+await expect(page.getByRole('link', { name: 'Login' })).toBeVisible();
 
 });
