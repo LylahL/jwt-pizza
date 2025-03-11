@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: "20.x"
 
       - name: set version
         id: set_version
@@ -47,7 +47,7 @@ jobs:
         run: |
           coverage=$(jq '.total.lines.pct' coverage/coverage-summary.json)
           color=$(echo "$coverage < 80" | bc -l | awk '{if ($1) print "red"; else print "green"}')
-          curl -s -X POST "https://badge.cs329.click/badge/${{ github.repository_owner }}/jwtpizzacoverage?label=Coverage&value=$coverage%25&color=$color" -H "authorization: bearer ${{ secrets.FACTORY_API_KEY }}" -o /dev/null     
+          curl -s -X POST "https://badge.cs329.click/badge/${{ github.repository_owner }}/jwtpizzacoverage?label=Coverage&value=$coverage%25&color=$color" -H "authorization: bearer ${{ secrets.FACTORY_API_KEY }}" -o /dev/null
   deploy:
     needs: build
     permissions:
@@ -69,8 +69,29 @@ jobs:
           name: package
           path: dist/
 
-      - name: Push to AWS S3
+      - name:
+          Push to AWS S3
+          # Append the version to the path
         run: |
           echo Deploying $version
-          aws s3 cp dist s3://${{ secrets.APP_BUCKET }} --recursive
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+          aws s3 cp dist s3://${{ secrets.APP_BUCKET }}/$version --recursive
+          # Remove this line -> aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+  release:
+    needs:
+      - build
+      - deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5
+        env:
+          version: ${{needs.build.outputs.version}}
+        with:
+          tag: version-${{ env.version }}
+          name: Version ${{ env.version }}
+          body: |
+            ## 🚀 Changes
+
+            ${{ github.event.head_commit.message }}
+
+            **commit**: ${{ github.sha }}
